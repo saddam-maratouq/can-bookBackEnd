@@ -12,8 +12,9 @@ const mongoose = require('mongoose');
 const PORT = process.env.PORT;
 const server = express();
 server.use(cors()); 
+server.use(express.json()); //// midel ware to mange body data in req body  
 
-mongoose.connect('mongodb://localhost:27017/book', {useNewUrlParser: true, useUnifiedTopology: true}); 
+mongoose.connect(process.env.MONGO_URL, {useNewUrlParser: true, useUnifiedTopology: true}); 
 
 
 const db = mongoose.connection;
@@ -32,7 +33,7 @@ const BookSaddam = new mongoose.Schema({
     title : String ,
     description :String ,
     email:String ,
-    statues: String ,
+    statues : String ,
   });
 
 
@@ -81,12 +82,15 @@ const BookSaddam = new mongoose.Schema({
     BrokenGlass.save();
     GirlDragon.save();
     HarryPotter.save();
-    TheDayYouBegin.save();
+    TheDayYouBegin.save(); 
     
   } 
-//   seedDataCollection(); // npm start only one time 
+//   seedDataCollection();  // npm start only one time when  y want save data  
 
 //////////////////////////////////////////////////////// 
+
+
+
 
 // localhost:3001/books?email=adiga037@gmail.com    // same time use searh qery same idea 
 
@@ -108,3 +112,84 @@ function booksHandler(req,res) {
         }
     })
 }
+
+
+/////////////////////////////////////////////////////////
+
+
+server.post('/AddBook',addBooksHandler);
+
+
+// localhost:3001/AddBook`,bookDatas
+
+async function addBooksHandler(req,res) {
+ 
+
+    let {title,description,email,statues} = req.body;  
+    console.log(req.body);
+
+    await book.create({title,description,email,statues});   
+
+    console.log( 'data from body', req.body);
+    book.find({email},function(err,updatedData){
+        if(err){ 
+            console.log('error in getting the data');  
+        }else { 
+            console.log(updatedData);
+            res.send(updatedData)
+        }
+    }
+    )  
+   
+      
+ 
+
+}    
+
+/////////////////////////////////////////////////
+
+
+// localhost:3001/deletBook/826486842?email=adiga037@gmail.com  /// after / its parms follow name in route :bookID2  so  req.params.bookID2
+
+server.delete('/deletBook/:bookID2',deletBookHandler)  //// bookID2 same in req. params logical  //
+
+function deletBookHandler (req,res) {
+    
+console.log('data from delete ',req.params); 
+
+console.log('data from delete ',req.params.bookID2); 
+
+
+let bookIdData = req.params.bookID2  // bookID2 
+
+let Searchemail= req.query.email;  
+
+
+
+
+book.deleteOne({ _id : bookIdData} , function (err,deletedBook)  {
+
+    if (err) {
+        console.log('error from find');
+    }
+
+    else {
+           
+        book.find({Searchemail}, function (err,ubdateBook) {
+
+            if (err){
+                console.log('error ubdate');
+            }
+            else {
+
+                res.send(ubdateBook) 
+            }
+              
+          }  ) 
+ 
+
+      } 
+   })
+      
+
+} 
